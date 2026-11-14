@@ -21,9 +21,12 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } ca
 
 // ---------- Appearance (kept on the device, mirrored to the account) ----------
 const ui = Object.assign({ size: 19, night: false }, lsGet('wildwood:ui', {}));
+const sizeLabel = () => `Text size ${Math.round((ui.size / 19) * 100)}%${ui.size <= 14 ? ' (smallest)' : ui.size >= 30 ? ' (largest)' : ''}`;
 function applyUi() {
   document.documentElement.classList.toggle('night', !!ui.night);
   document.documentElement.style.setProperty('--read-size', ui.size + 'px');
+  // the rest of the app scales with the same setting, within a range that keeps the layout usable
+  document.documentElement.style.fontSize = Math.round(Math.min(135, Math.max(88, (ui.size / 19) * 100))) + '%';
   const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = ui.night ? '#0b0b0b' : '#ffffff';
   lsSet('wildwood:ui', ui);
 }
@@ -323,6 +326,8 @@ function viewAbout(email) {
     <h2>Sources for the plan</h2><ul>${Object.values(SOURCES).map((s) => `<li><a href="${s.url}" target="_blank" rel="noopener">${esc(s.label)}</a></li>`).join('')}</ul>
     <h2>Reading settings</h2>
     <div class="rowbtns"><button class="btn" data-act="size" data-d="-1">Smaller text</button><button class="btn" data-act="size" data-d="1">Larger text</button></div>
+    <p class="small muted" data-size-label aria-live="polite">${sizeLabel()}</p>
+    <p class="reader" style="padding:0;margin:.5rem 0 1rem">This is how text looks in the reader at this size.</p>
     <button class="btn block" data-act="night">${ui.night ? 'Switch to day mode' : 'Switch to night mode'}</button>
     <h2>Your data</h2>
     <p class="small muted">Progress, notes and logs are stored in your own database, in tables only your account can read. Signed in as ${esc(email || '')}.</p>
@@ -379,7 +384,7 @@ window.addEventListener('scroll', () => {
 function openLook() {
   const el = document.createElement('div'); el.className = 'sheet'; el.id = 'sheet'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Text size and night mode');
   el.innerHTML = `<div class="sh"><h2>Reading settings</h2><button class="iconbtn" data-act="close-sheet" aria-label="Close">✕</button></div>
-    <div class="body"><p class="eyebrow">Text size</p>
+    <div class="body"><p class="eyebrow" data-size-label>${sizeLabel()}</p>
       <div class="rowbtns"><button class="btn" data-act="size" data-d="-1" aria-label="Smaller text">A−</button><button class="btn" data-act="size" data-d="1" aria-label="Larger text">A+</button></div>
       <p class="reader" style="padding:0;margin:1rem 0" id="look-sample">The quick brown fox reads under the trees.</p>
       <p class="eyebrow">Light</p>
@@ -458,7 +463,7 @@ document.addEventListener('click', async (ev) => {
   } else if (act === 'status') { store.setProgress(t.dataset.id, t.dataset.v); t.parentElement.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b === t)); }
   else if (act === 'openlink') { if (store.status(t.dataset.id) === 'not_started') { store.setProgress(t.dataset.id, 'in_progress'); document.querySelectorAll('[data-act=status]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.v === 'in_progress')); } }
   else if (act === 'finish') { store.setProgress(t.dataset.id, 'done'); location.hash = '#/item/' + t.dataset.id; }
-  else if (act === 'size') { ui.size = Math.min(30, Math.max(14, ui.size + (+t.dataset.d) * 1.5)); applyUi(); store.setState({ ui: { ...ui } }); }
+  else if (act === 'size') { ui.size = Math.min(30, Math.max(14, ui.size + (+t.dataset.d) * 1.5)); applyUi(); store.setState({ ui: { ...ui } }); document.querySelectorAll('[data-size-label]').forEach((el) => { el.textContent = sizeLabel(); }); }
   else if (act === 'night') { ui.night = t.dataset.v != null ? t.dataset.v === '1' : !ui.night; applyUi(); store.setState({ ui: { ...ui } }); if ($('#sheet')) openLook(); else if (!reader) render(); }
   else if (act === 'look') openLook();
   else if (act === 'toc') openSheet('toc');
