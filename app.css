@@ -130,3 +130,7 @@ input:focus, textarea:focus, select:focus, button:focus-visible, a:focus-visible
 
 .nextnav { border-top: 1px solid var(--line); margin-top: 2rem; padding-top: 1.25rem; }
 .nextnav .small.muted { display: block; margin-bottom: .35rem; }
+
+.reader.lesson { padding: 0; margin: 1rem 0 0; max-width: none; }
+.reader.lesson ul { padding-left: 1.2em; margin: 0 0 .9em; }
+.reader.lesson li { margin: .35em 0; }

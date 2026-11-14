@@ -502,6 +502,8 @@ const G = {
 const read = (id, book, title, from, to, extra = {}) => ({ id, type: 'read', book, title, from, to, ...extra });
 const link = (id, set, title, url, extra = {}) => ({ id, type: 'link', set, title, url, ...extra });
 const guide = (id, g, title, part) => ({ id, type: 'guide', guide: g, title, part });
+const lesson = (id, title) => ({ id, type: 'lesson', title });
+const opt = (arr) => arr.map((o) => ({ ...o, optional: true }));
 const practice = (id, g, title, log, extra = {}) => ({ id, type: 'practice', guide: g, title, log, ...extra });
 
 const smLectures = [
@@ -570,22 +572,40 @@ export const PLAN = [
         ] },
       ] },
       { id: 'y1-sm', title: 'The Study of Man', units: [
-        { id: 'y1-sm-u', title: 'Lectures I–V', items: [guide('y1-sm-guide', 'studyOfMan', 'Short guide', 1), ...sm(0, 5)] },
+        { id: 'y1-sm-u', title: 'The human being in thinking, feeling and will', items: [
+          lesson('l-threefold', 'Lesson: Thinking, feeling and willing'),
+          lesson('l-will-habit', 'Lesson: Will, habit and repetition'),
+          ...opt([guide('y1-sm-guide', 'studyOfMan', 'About the source lectures', 1), ...sm(0, 5)]),
+        ] },
       ] },
       { id: 'y1-art', title: 'The art of teaching', units: [
-        { id: 'y1-pc', title: 'Practical Course for Teachers, lectures I–VII', items: [guide('y1-pc-guide', 'practical', 'Short guide', 1), ...pc(0, 7)] },
-        { id: 'y1-dt', title: 'Discussions with Teachers, discussions I–VII', items: [guide('y1-dt-guide', 'discussions', 'Short guide', 1), ...dt(0, 7)] },
-        { id: 'y1-kc', title: 'The Kingdom of Childhood', items: [
-          guide('y1-kc-guide', 'kingdom', 'Short guide'),
-          link('y1-kc', 'kingdom', 'The Kingdom of Childhood, seven lectures', LINKSETS.kingdom.index),
+        { id: 'y1-pc', title: 'Method in the first school years', items: [
+          lesson('l-art-first', 'Lesson: Why teaching begins with art'),
+          lesson('l-first-lesson', 'Lesson: The first school lesson'),
+          lesson('l-writing-reading', 'Lesson: Writing before reading'),
+          lesson('l-arithmetic', 'Lesson: First arithmetic, from the whole to the parts'),
+          lesson('l-rhythm', 'Lesson: Rhythm in the day, the week and the year'),
+          lesson('l-nine-year', 'Lesson: The nine-year change'),
+          ...opt([guide('y1-pc-guide', 'practical', 'About the source lectures (Practical Course)', 1), ...pc(0, 7)]),
+        ] },
+        { id: 'y1-dt', title: 'Temperaments, stories and speech', items: [
+          lesson('l-temperaments', 'Lesson: The four temperaments'),
+          lesson('l-storytelling', 'Lesson: Telling stories'),
+          lesson('l-speech', 'Lesson: Speech, verses and recitation'),
+          ...opt([guide('y1-dt-guide', 'discussions', 'About the source lectures (Discussions with Teachers)', 1), ...dt(0, 7)]),
+        ] },
+        { id: 'y1-kc', title: 'The main lesson', items: [
+          lesson('l-main-lesson', 'Lesson: The main lesson and the lesson book'),
+          ...opt([guide('y1-kc-guide', 'kingdom', 'About the source lectures (The Kingdom of Childhood)'),
+            link('y1-kc', 'kingdom', 'The Kingdom of Childhood, seven lectures', LINKSETS.kingdom.index)]),
         ] },
       ] },
       { id: 'y1-cur', title: 'Curriculum and stories, grades 1–3', units: [
-        { id: 'y1-curlec', title: 'Steiner’s lectures on the curriculum', items: [
+        { id: 'y1-curlec', title: 'Steiner’s lectures on the curriculum (optional links)', items: opt([
           link('dt-cur-1', 'discussions', 'First Lecture on the Curriculum', `${DT}19190906d16.html`),
           link('dt-cur-2', 'discussions', 'Second Lecture on the Curriculum', `${DT}19190906d17.html`),
           link('dt-cur-3', 'discussions', 'Discussion XV and Third Lecture on the Curriculum', `${DT}19190906d15.html`),
-        ] },
+        ]) },
         { id: 'y1-grimm', title: 'Fairy tales', items: [guide('y1-grimm-guide', 'grimm', 'Short guide'), read('y1-grimm', '5314', 'Household Tales (Grimm)', 0, 209)] },
         { id: 'y1-aesop', title: 'Fables', items: [guide('y1-aesop-guide', 'aesop', 'Short guide'), read('y1-aesop', '21', 'Aesop’s Fables', 0, 15)] },
         { id: 'y1-owl', title: 'Teachers’ articles, grades 1–3', items: [guide('y1-owl-guide', 'owl', 'About this item'), owl('y1-owl-link', 'Online Waldorf Library: choose articles for grades 1–3')] },
@@ -714,6 +734,7 @@ export const GUIDES = G;
 
 // Gaps stated plainly, shown on the About page.
 export const GAPS = [
+  'In Year 1 the main teaching on method is in lessons written by Claude, an AI. They are a synthesis of how the approach is commonly described, not checked against any training program, and they do not retell the linked lectures.',
   'The reading order follows one published program sequence (Southern California, from a 2020 state filing). Other programs order things differently.',
   'I could not open the Online Waldorf Library with my tools, so those items point to the library’s front page and ask you to choose.',
   'I could not open the contents page of The Kingdom of Childhood, so it has one link to the whole book.',
@@ -738,3 +759,4 @@ export const SHELF = ORDER.shelf.map((id) => BOOKS[id]).map((b) => ({ id: 'shelf
 for (const s of SHELF) _index.set(s.id, s);
 export const getItem = (id) => _index.get(id);
 export const countable = (it) => it.type !== 'guide' && !it.optional;
+// Year 1 lecture links are optional: the lessons written by Claude are the reading. Years 2 and 3 still list lectures until their lessons are written.

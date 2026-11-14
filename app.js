@@ -1,6 +1,7 @@
 // Wildwood — a private, single-user study reader.
 // Course content lives in content.js and texts/. Progress, notes and logs live in Supabase,
 // in tables that only the owner's account can read or write.
+import { LESSONS } from './lessons.js';
 import { APP, SOURCES, BOOKS, LINKSETS, GUIDES, PLAN, GAPS, SHELF, ORDER, PLAIN, allItems, getItem, countable } from './content.js';
 
 const CFG = {
@@ -155,9 +156,10 @@ function nextNav(it) {
     ${nx ? `${where(nx)}${it.type === 'guide' || done ? `<a class="btn primary block" id="next-item" href="${hrefFor(nx)}">Next: ${esc(nx.title)} →</a>` : `<button class="btn primary block" id="next-item" data-act="done-next" data-id="${it.id}" data-href="${hrefFor(nx)}">Mark done and continue: ${esc(nx.title)} →</button><p class="small"><a href="${hrefFor(nx)}">Go to next without marking this done</a></p>`}` : '<p class="muted">This is the last item in the plan.</p>'}
     ${pv ? `<p class="small"><a href="#/item/${pv.id}">← Previous: ${esc(pv.title)}</a></p>` : ''}</nav>`;
 }
-const KIND_LABEL = { read: 'Full text in the app', link: 'Link', guide: 'Guide', practice: 'Practice log' };
+const KIND_LABEL = { read: 'Full text in the app', link: 'Link', guide: 'Guide', practice: 'Practice log', lesson: 'Lesson by Claude' };
 function tierBadge(it) {
   if (it.type === 'guide') return '<span class="tier tg">Written by Claude</span>';
+  if (it.type === 'lesson') return '<span class="tier tg">Lesson · written by Claude</span>';
   if (it.type === 'read') return BOOKS[it.book].tier === 'shelf' ? '<span class="tier">Full text · wider reading</span>' : '<span class="tier">Tier 1 · full text · public domain</span>';
   if (it.type === 'link') return '<span class="tier t2">Tier 2 · link only</span>';
   return '<span class="tier t2">Your own practice</span>';
@@ -200,7 +202,7 @@ function viewHome() {
 
 function itemRow(it) {
   const st = store.status(it.id);
-  return `<li><a href="#/item/${it.id}"><span class="t">${esc(it.title)}${it.optional ? ' <span class="muted small">(optional)</span>' : ''}</span><span class="k">${KIND_LABEL[it.type]}${store.notes[it.id] ? ' · has notes' : ''}</span></a>
+  return `<li><a href="#/item/${it.id}"><span class="t${it.optional ? ' muted' : ''}">${esc(it.title)}${it.optional ? ' <span class="small">(optional)</span>' : ''}</span><span class="k">${KIND_LABEL[it.type]}${store.notes[it.id] ? ' · has notes' : ''}</span></a>
     ${it.type === 'guide' ? '<span class="status" aria-hidden="true"><span class="dot none"></span></span>' : `<button class="status" data-act="cycle" data-id="${it.id}" aria-label="Status: ${st.replace('_', ' ')}. Tap to change."><span class="dot ${st}"></span></button>`}</li>`;
 }
 function viewPlan(yid) {
@@ -259,6 +261,9 @@ function viewItem(id) {
     body += `<a class="btn primary block" id="open-link" data-act="openlink" data-id="${it.id}" href="${it.url}" target="_blank" rel="noopener">Open the reading ↗</a>`;
     if (s && s.index !== it.url) body += `<p class="small"><a href="${s.index}" target="_blank" rel="noopener">Contents page for the whole book ↗</a></p>`;
     if (it.guide) body += guideHtml(it.guide);
+  } else if (it.type === 'lesson') {
+    const L = LESSONS[it.id];
+    body += `<p class="pnote"><strong>My own synthesis.</strong> This lesson is written by Claude, an AI, from how the approach is commonly described. It is not Steiner’s words and has not been checked against any training program.</p><div class="reader lesson">${L ? L.html : '<p>This lesson has not been written yet.</p>'}</div>`;
   } else if (it.type === 'guide') {
     body += guideHtml(it.guide, it.part);
   } else if (it.type === 'practice') {
@@ -337,6 +342,7 @@ function viewAbout(email) {
     <p><span class="tier">Tier 1</span> Full text inside the app. Only texts checked as public domain in the USA; the check is written beside each one.</p>
     <p><span class="tier t2">Tier 2</span> Link only. Nothing is copied or paraphrased at length.</p>
     <p><span class="tier tg">Plain-English version by Claude</span> A paragraph-by-paragraph rewording of a public-domain text into everyday English, by an AI. The original is always one tap away in the reader.</p>
+    <p><span class="tier tg">Lesson · written by Claude</span> Full lessons by an AI on how the method is commonly taught. They are the main reading for the topics the lectures cover. They are a synthesis, not a retelling of any one lecture, and are not checked against a training program.</p>
     <p><span class="tier tg">Written by Claude</span> Short guides by an AI. They say what a text is, where real programs place it, and what to look for, and they name a source for each point. They are not teaching.</p>
     <h2>Known gaps</h2><ul>${GAPS.map((g) => `<li>${esc(g)}</li>`).join('')}</ul>
     <h2>Sources for the plan</h2><ul>${Object.values(SOURCES).map((s) => `<li><a href="${s.url}" target="_blank" rel="noopener">${esc(s.label)}</a></li>`).join('')}</ul>
