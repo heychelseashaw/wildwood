@@ -127,3 +127,6 @@ input:focus, textarea:focus, select:focus, button:focus-visible, a:focus-visible
 
 .version { font-family: var(--ui); font-size: 1rem; margin-bottom: 1.25rem; }
 .reader p.pnote, .pnote { font-family: var(--ui); font-size: .8rem; line-height: 1.45; color: var(--muted); background: var(--soft); padding: .6rem .75rem; border-radius: 2px; hyphens: manual; }
+
+.nextnav { border-top: 1px solid var(--line); margin-top: 2rem; padding-top: 1.25rem; }
+.nextnav .small.muted { display: block; margin-bottom: .35rem; }

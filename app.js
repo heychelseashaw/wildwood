@@ -115,15 +115,16 @@ const store = {
     this.outbox = this.outbox.filter((o) => o.k !== 'b:' + id);
     this.queue({ t: 'wte_bookmarks', op: 'delete', match: { id } });
   },
+  pushStateNow() { clearTimeout(this._st); this._st = null; if (this.uid) this.queue({ k: 'state', t: 'wte_state', op: 'upsert', c: 'user_id', row: { user_id: this.uid, data: this.state, updated_at: new Date().toISOString() } }); },
   _st: null,
   setState(patch, soon = false) {
     Object.assign(this.state, patch); this.saveLocal();
     clearTimeout(this._st);
-    this._st = setTimeout(() => this.queue({ k: 'state', t: 'wte_state', op: 'upsert', c: 'user_id', row: { user_id: this.uid, data: this.state, updated_at: new Date().toISOString() } }), soon ? 50 : 2500);
+    this._st = setTimeout(() => this.pushStateNow(), soon ? 50 : 2500);
   },
 };
 window.addEventListener('online', () => store.flush());
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && store._st) { clearTimeout(store._st); store.setState({}, true); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && store._st) store.pushStateNow(); });
 
 function paintSync() {
   const el = $('#sync'); if (!el) return;
@@ -141,6 +142,19 @@ function tally(items) {
 const itemsOf = { year: (y) => ITEMS.filter((i) => i.year.id === y.id), course: (c) => ITEMS.filter((i) => i.course.id === c.id), unit: (u) => ITEMS.filter((i) => i.unit.id === u.id) };
 const meter = (t) => `<div class="meter" role="img" aria-label="${t.pct}% done"><i style="width:${t.pct}%"></i></div>`;
 
+// Reading order: every item in the plan, skipping ones marked optional.
+const SEQ = ITEMS.filter((i) => !i.optional);
+function neighbor(id, d) { const k = SEQ.findIndex((i) => i.id === id); if (k < 0) { const j = ITEMS.findIndex((i) => i.id === id); if (j < 0) return null; const rest = d > 0 ? ITEMS.slice(j + 1) : ITEMS.slice(0, j).reverse(); return rest.find((i) => !i.optional) || null; } return SEQ[k + d] || null; }
+// where "next" should land: straight into the reader for readings, the item page otherwise
+function hrefFor(it) { if (it.type !== 'read') return '#/item/' + it.id; const pos = store.state.pos && store.state.pos[it.book]; const from = it.from ?? 0; const inRange = pos && pos.ch >= from && (it.to == null || pos.ch <= it.to); return `#/read/${it.book}/${inRange ? pos.ch : from}?i=${it.id}`; }
+function nextNav(it) {
+  if (it.shelf) return '';
+  const nx = neighbor(it.id, 1), pv = neighbor(it.id, -1); const done = store.status(it.id) === 'done';
+  const where = (x) => (x.unit.id !== it.unit.id ? `<span class="small muted">${esc(x.course.id !== it.course.id ? x.course.title + ' · ' : '')}${esc(x.unit.title)}</span>` : '');
+  return `<nav class="nextnav" aria-label="Next and previous">
+    ${nx ? `${where(nx)}${it.type === 'guide' || done ? `<a class="btn primary block" id="next-item" href="${hrefFor(nx)}">Next: ${esc(nx.title)} →</a>` : `<button class="btn primary block" id="next-item" data-act="done-next" data-id="${it.id}" data-href="${hrefFor(nx)}">Mark done and continue: ${esc(nx.title)} →</button><p class="small"><a href="${hrefFor(nx)}">Go to next without marking this done</a></p>`}` : '<p class="muted">This is the last item in the plan.</p>'}
+    ${pv ? `<p class="small"><a href="#/item/${pv.id}">← Previous: ${esc(pv.title)}</a></p>` : ''}</nav>`;
+}
 const KIND_LABEL = { read: 'Full text in the app', link: 'Link', guide: 'Guide', practice: 'Practice log' };
 function tierBadge(it) {
   if (it.type === 'guide') return '<span class="tier tg">Written by Claude</span>';
@@ -254,7 +268,7 @@ function viewItem(id) {
     if (it.shelf) body += `<p class="small muted">Related wider reading (not Waldorf sources): ${it.shelf.map((b) => `<a href="#/item/shelf-${b}">${esc(BOOKS[b].title)}</a>`).join('; ')}</p>`;
   }
   if (it.type !== 'guide') body += `<h3>Status</h3>${statusSeg(it.id)}`;
-  body += `<label for="note">My notes on this item</label><textarea id="note" data-id="${it.id}" placeholder="Write here. Notes save as you type.">${esc(store.notes[it.id] || '')}</textarea><div class="saved" id="saved"></div>`;
+  body += `<label for="note">My notes on this item</label><textarea id="note" data-id="${it.id}" placeholder="Write here. Notes save as you type.">${esc(store.notes[it.id] || '')}</textarea><div class="saved" id="saved"></div>${nextNav(it)}`;
   return shell(it.shelf ? 'Library' : it.course.title, body, it.shelf ? 'library' : 'plan', back);
 }
 
@@ -367,7 +381,7 @@ async function viewReader(bookId, ch, itemId) {
         <p class="pnote">${usePlain ? '<strong>Plain-English version by Claude.</strong> It follows the original paragraph by paragraph. Headings and notes in [square brackets] are added. These are not Steiner’s words; switch to Original to check any passage.' : `<strong>Original text.</strong> ${esc(b.facts || '')}`}</p></div>` : ''}
       <h2>${esc(c.t)}</h2>${usePlain ? c.p : c.h}
       <div class="endcard">
-        ${atEnd ? `<p>End of this reading.</p>${store.status(it.id) === 'done' ? '<p class="muted">Marked done.</p>' : `<button class="btn primary block" data-act="finish" data-id="${it.id}">Mark this reading done</button>`}<p><a href="#/item/${it.id}">Back to the item and my notes</a></p>`
+        ${atEnd ? `<p>End of this reading.</p>${store.status(it.id) === 'done' ? '<p class="muted">Marked done.</p>' : `<button class="btn primary block" data-act="finish" data-id="${it.id}">Mark this reading done</button>`}${readerNext(it)}<p><a href="#/item/${it.id}">Back to the item and my notes</a></p>`
           : ch < n - 1 ? `<a class="btn primary block" href="#/read/${bookId}/${ch + 1}${q}">Next: ${esc(data.chapters[ch + 1].t)}</a>` : '<p>End of the book.</p>'}
         <p class="small muted">${esc(b.title)} · ${esc(b.author)}. Public-domain text; source: Project Gutenberg eBook #${b.pg}.</p>
       </div>
@@ -377,6 +391,11 @@ async function viewReader(bookId, ch, itemId) {
       <span class="where">Section ${ch + 1} of ${n}${it && it.to != null && !it.shelf ? ` · this reading: ${Math.max(0, ch - from) + 1} of ${to - from + 1}` : ''}</span>
       ${ch < n - 1 ? `<a class="btn quiet" href="#/read/${bookId}/${ch + 1}${q}" aria-label="Next section">→</a>` : '<span class="btn quiet" style="visibility:hidden">→</span>'}
     </div></div>`;
+}
+function readerNext(it) {
+  if (it.shelf) return ''; const nx = neighbor(it.id, 1); if (!nx) return '';
+  return store.status(it.id) === 'done' ? `<p><a class="btn primary block" id="next-item" href="${hrefFor(nx)}">Next: ${esc(nx.title)} →</a></p>`
+    : `<p><button class="btn block" id="next-item" data-act="done-next" data-id="${it.id}" data-href="${hrefFor(nx)}">Mark done and continue: ${esc(nx.title)} →</button></p>`;
 }
 function scrollFrac() { const h = document.documentElement.scrollHeight - window.innerHeight; return h > 0 ? Math.min(1, Math.max(0, window.scrollY / h)) : 0; }
 function restoreScroll(f) { const h = document.documentElement.scrollHeight - window.innerHeight; window.scrollTo(0, Math.round(h * f)); }
@@ -468,6 +487,7 @@ document.addEventListener('click', async (ev) => {
     store.setProgress(t.dataset.id, next); t.querySelector('.dot').className = 'dot ' + next; t.setAttribute('aria-label', `Status: ${next.replace('_', ' ')}. Tap to change.`); refreshPcts();
   } else if (act === 'status') { store.setProgress(t.dataset.id, t.dataset.v); t.parentElement.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b === t)); }
   else if (act === 'openlink') { if (store.status(t.dataset.id) === 'not_started') { store.setProgress(t.dataset.id, 'in_progress'); document.querySelectorAll('[data-act=status]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.v === 'in_progress')); } }
+  else if (act === 'done-next') { flushNote(); store.setProgress(t.dataset.id, 'done'); location.hash = t.dataset.href; }
   else if (act === 'finish') { store.setProgress(t.dataset.id, 'done'); location.hash = '#/item/' + t.dataset.id; }
   else if (act === 'size') { ui.size = Math.min(30, Math.max(14, ui.size + (+t.dataset.d) * 1.5)); applyUi(); store.setState({ ui: { ...ui } }); document.querySelectorAll('[data-size-label]').forEach((el) => { el.textContent = sizeLabel(); }); }
   else if (act === 'night') { ui.night = t.dataset.v != null ? t.dataset.v === '1' : !ui.night; applyUi(); store.setState({ ui: { ...ui } }); if ($('#sheet')) openLook(); else if (!reader) render(); }
@@ -483,7 +503,7 @@ document.addEventListener('click', async (ev) => {
   } else if (act === 'goto-mark') { const m = store.bookmarks.find((x) => x.id === t.dataset.id); if (m) { const h = `#/read/${m.book_id}/${m.chapter}?${reader.item ? 'i=' + reader.item + '&' : ''}m=${m.id}`; if (location.hash === h) { $('#sheet')?.remove(); restoreScroll(m.pos); } else location.hash = h; } }
   else if (act === 'del-mark') { store.deleteBookmark(t.dataset.id); openSheet('marks'); const still = store.bookmarks.some((m) => m.book_id === reader.book && m.chapter === reader.ch); const b = document.querySelector('[data-act=bookmark]'); if (b) { b.classList.toggle('on', still); b.setAttribute('aria-pressed', still); } }
   else if (act === 'del-entry') { if (t.dataset.armed) { store.deleteEntry(t.dataset.id); location.hash = '#/journal/' + t.dataset.kind; } else { t.dataset.armed = '1'; t.textContent = 'Tap again to delete for good'; } }
-  else if (act === 'signout') { await store.flush(); await sb.auth.signOut(); }
+  else if (act === 'signout') { flushNote(); store.pushStateNow(); await store.flush(); await sb.auth.signOut(); }
   else if (act === 'export') {
     const blob = new Blob([JSON.stringify({ exported: new Date().toISOString(), progress: store.progress, notes: store.notes, journal: store.journal, bookmarks: store.bookmarks }, null, 2)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `wildwood-data-${today()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
