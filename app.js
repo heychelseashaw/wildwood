@@ -236,7 +236,7 @@ function viewItem(id) {
     const b = BOOKS[it.book]; const pos = store.state.pos && store.state.pos[it.book];
     const from = it.from ?? 0; const inRange = pos && pos.ch >= from && (it.to == null || pos.ch <= it.to);
     body += `${it.title !== b.title ? `<p>From <em>${esc(b.title)}</em></p>` : ''}${bookFacts(b)}
-      ${PLAIN.includes(it.book) ? '<p><span class="tier tg">Plain-English version by Claude</span> <span class="small muted">The reader opens in plain English, with a switch to the original.</span></p>' : ''}
+      ${PLAIN.includes(it.book) ? '<p><span class="tier tg">Plain-English version by Claude</span> <span class="small muted">Sections that have a plain-English version open in it, with a switch to the original. Sections not yet reworded show the original only.</span></p>' : ''}
       <a class="btn primary block" id="open-reader" href="#/read/${it.book}/${inRange ? pos.ch : from}?i=${it.id}">${inRange ? 'Continue reading' : 'Open in the reader'}</a>`;
   } else if (it.type === 'link') {
     const s = it.set && LINKSETS[it.set];
