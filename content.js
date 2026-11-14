@@ -562,14 +562,6 @@ export const PLAN = [
           read('y1-essay-1', '55586', 'The Education of Children, part 1', 0, 0),
           read('y1-essay-2', '55586', 'The Education of Children, part 2', 1, 1),
         ] },
-        { id: 'y1-phil', title: 'The Philosophy of Spiritual Activity', items: [
-          guide('y1-phil-guide', 'philosophy', 'Short guide'),
-          read('y1-phil-1', '55761', 'Prefaces and chapters I–III', 0, 5),
-          read('y1-phil-2', '55761', 'Chapters IV–VII', 6, 9),
-          read('y1-phil-3', '55761', 'Chapters VIII–XI', 10, 13),
-          read('y1-phil-4', '55761', 'Chapters XII–XV', 14, 17),
-          read('y1-phil-5', '55761', 'Truth and Science, and the appendices', 18, 30, { optional: true }),
-        ] },
       ] },
       { id: 'y1-sm', title: 'The Study of Man', units: [
         { id: 'y1-sm-u', title: 'The human being in thinking, feeling and will', items: [
@@ -601,6 +593,7 @@ export const PLAN = [
         ] },
       ] },
       { id: 'y1-cur', title: 'Curriculum and stories, grades 1–3', units: [
+        { id: 'y1-cur-l', title: 'Overview', items: [lesson('l-grades-1-3', 'Lesson: The curriculum in grades 1 to 3')] },
         { id: 'y1-curlec', title: 'Steiner’s lectures on the curriculum (optional links)', items: opt([
           link('dt-cur-1', 'discussions', 'First Lecture on the Curriculum', `${DT}19190906d16.html`),
           link('dt-cur-2', 'discussions', 'Second Lecture on the Curriculum', `${DT}19190906d17.html`),
@@ -608,10 +601,10 @@ export const PLAN = [
         ]) },
         { id: 'y1-grimm', title: 'Fairy tales', items: [guide('y1-grimm-guide', 'grimm', 'Short guide'), read('y1-grimm', '5314', 'Household Tales (Grimm)', 0, 209)] },
         { id: 'y1-aesop', title: 'Fables', items: [guide('y1-aesop-guide', 'aesop', 'Short guide'), read('y1-aesop', '21', 'Aesop’s Fables', 0, 15)] },
-        { id: 'y1-owl', title: 'Teachers’ articles, grades 1–3', items: [guide('y1-owl-guide', 'owl', 'About this item'), owl('y1-owl-link', 'Online Waldorf Library: choose articles for grades 1–3')] },
+        { id: 'y1-owl', title: 'Teachers’ articles, grades 1–3 (optional)', items: opt([guide('y1-owl-guide', 'owl', 'About this item'), owl('y1-owl-link', 'Online Waldorf Library: choose articles for grades 1–3')]) },
       ] },
       { id: 'y1-ec', title: 'Early childhood', units: [
-        { id: 'y1-ec-u', title: 'Teachers’ articles on early childhood', items: [owl('y1-ec-link', 'Online Waldorf Library: choose articles on the first seven years')] },
+        { id: 'y1-ec-u', title: 'The first seven years', items: [lesson('l-young-child', 'Lesson: The young child at home'), ...opt([owl('y1-ec-link', 'Online Waldorf Library: choose articles on the first seven years')])] },
       ] },
       { id: 'y1-inner', title: 'Inner development', units: [
         { id: 'y1-woi', title: 'The Way of Initiation, chapters I–IV', items: [
@@ -621,11 +614,34 @@ export const PLAN = [
           read('y1-woi-2', '39986', 'Chapters III and IV', 5, 6),
         ] },
       ] },
-      { id: 'y1-arts', title: 'The arts', units: [{ id: 'y1-arts-u', title: 'Practice log', items: artsItems(1) }] },
+      { id: 'y1-arts', title: 'The arts', units: [
+        { id: 'y1-arts-l', title: 'The arts in the classroom', items: [
+          lesson('l-painting', 'Lesson: Wet-on-wet painting'),
+          lesson('l-form-drawing', 'Lesson: Form drawing'),
+          lesson('l-handwork', 'Lesson: Handwork through the grades'),
+          lesson('l-music', 'Lesson: Singing, flutes and the mood of the fifth'),
+          lesson('l-movement', 'Lesson: Movement, games and eurythmy'),
+        ] },
+        { id: 'y1-arts-u', title: 'Practice log', items: artsItems(1) },
+      ] },
       { id: 'y1-obs', title: 'Observation and practice', units: [
         { id: 'y1-obs-u', title: 'Observation', items: [
+          lesson('l-observing', 'Lesson: Observing a child'),
           guide('y1-obs-guide', 'observation', 'About this strand'),
           practice('y1-obs-log', 'observation', 'Keep an observation log this year', 'observation'),
+        ] },
+      ] },
+      { id: 'y1-philc', title: 'Foundation studies: philosophy', units: [
+        { id: 'y1-phil', title: 'The Philosophy of Spiritual Activity', items: [
+          lesson('l-pof-1', 'Lesson: The Philosophy of Freedom, part one: are we free?'),
+          lesson('l-pof-2', 'Lesson: The Philosophy of Freedom, part two: how we know'),
+          lesson('l-pof-3', 'Lesson: The Philosophy of Freedom, part three: acting freely'),
+          ...opt([guide('y1-phil-guide', 'philosophy', 'About the original book'),
+            read('y1-phil-1', '55761', 'Original text: prefaces and chapters I–III', 0, 5),
+            read('y1-phil-2', '55761', 'Original text: chapters IV–VII', 6, 9),
+            read('y1-phil-3', '55761', 'Original text: chapters VIII–XI', 10, 13),
+            read('y1-phil-4', '55761', 'Original text: chapters XII–XV', 14, 17),
+            read('y1-phil-5', '55761', 'Original text: Truth and Science, and the appendices', 18, 30)]),
         ] },
       ] },
     ],
@@ -635,37 +651,58 @@ export const PLAN = [
     model: 'Modeled on the second year of the Southern California program’s published sequence.',
     courses: [
       { id: 'y2-found', title: 'Foundation studies', units: [
-        { id: 'y2-theo', title: 'Theosophy', items: [
-          guide('y2-theo-guide', 'theosophy', 'Short guide'),
-          link('y2-theo-0', 'theosophy', 'Theosophy: prefaces and introduction', `${TH}GA009_intro.html`),
-          link('y2-theo-1', 'theosophy', 'Theosophy, chapter 1: The Nature of Man', `${TH}GA009_c01.html`),
-          link('y2-theo-2', 'theosophy', 'Theosophy, chapter 2: Re-embodiment of the Spirit and Destiny', `${TH}GA009_c02.html`),
-          link('y2-theo-3', 'theosophy', 'Theosophy, chapter 3: The Three Worlds', `${TH}GA009_c03.html`),
-          link('y2-theo-4', 'theosophy', 'Theosophy, chapter 4: The Path of Knowledge', `${TH}GA009_c04.html`),
+        { id: 'y2-theo', title: 'Body, soul and spirit', items: [
+          lesson('l-body-soul-spirit', 'Lesson: Body, soul and spirit'),
+          lesson('l-destiny', 'Lesson: Reincarnation and destiny in Steiner’s picture of the child'),
+          ...opt([guide('y2-theo-guide', 'theosophy', 'About the source book (Theosophy)'),
+            link('y2-theo-0', 'theosophy', 'Theosophy: prefaces and introduction', `${TH}GA009_intro.html`),
+            link('y2-theo-1', 'theosophy', 'Theosophy, chapter 1: The Nature of Man', `${TH}GA009_c01.html`),
+            link('y2-theo-2', 'theosophy', 'Theosophy, chapter 2: Re-embodiment of the Spirit and Destiny', `${TH}GA009_c02.html`),
+            link('y2-theo-3', 'theosophy', 'Theosophy, chapter 3: The Three Worlds', `${TH}GA009_c03.html`),
+            link('y2-theo-4', 'theosophy', 'Theosophy, chapter 4: The Path of Knowledge', `${TH}GA009_c04.html`)]),
         ] },
       ] },
       { id: 'y2-sm', title: 'The Study of Man', units: [
-        { id: 'y2-sm-u', title: 'Lectures VI–X', items: [guide('y2-sm-guide', 'studyOfMan', 'Short guide', 2), ...sm(5, 10)] },
+        { id: 'y2-sm-u', title: 'Senses, memory and concepts', items: [
+          lesson('l-twelve-senses', 'Lesson: The twelve senses'),
+          lesson('l-memory-sleep', 'Lesson: Memory, forgetting and sleep'),
+          lesson('l-living-concepts', 'Lesson: Concepts that can grow'),
+          ...opt([guide('y2-sm-guide', 'studyOfMan', 'About the source lectures', 2), ...sm(5, 10)]),
+        ] },
       ] },
       { id: 'y2-art', title: 'The art of teaching', units: [
-        { id: 'y2-pc', title: 'Practical Course for Teachers, lectures VIII–XIV', items: [guide('y2-pc-guide', 'practical', 'Short guide', 2), ...pc(7, 15)] },
-        { id: 'y2-dt', title: 'Discussions with Teachers, discussions VIII–XIV', items: [
-          guide('y2-dt-guide', 'discussions', 'Short guide', 2), ...dt(7, 14),
-          link('dt-closing', 'discussions', 'Discussions with Teachers: Closing Words', `${DT}19190907d19.html`),
+        { id: 'y2-pc', title: 'Method in the middle grades', items: [
+          lesson('l-after-twelve', 'Lesson: Teaching after twelve: cause and effect'),
+          lesson('l-languages', 'Lesson: Foreign languages from the first grade'),
+          lesson('l-geography', 'Lesson: Geography, from home outward'),
+          lesson('l-practical-life', 'Lesson: Connecting school with practical life'),
+          lesson('l-moral', 'Lesson: Moral education without preaching'),
+          ...opt([guide('y2-pc-guide', 'practical', 'About the source lectures (Practical Course)', 2), ...pc(7, 15)]),
+        ] },
+        { id: 'y2-dt', title: 'Subjects and the curriculum', items: [
+          lesson('l-botany', 'Lesson: Teaching plants'),
+          lesson('l-geometry-maps', 'Lesson: From form drawing to geometry'),
+          lesson('l-algebra', 'Lesson: From arithmetic to algebra'),
+          lesson('l-curriculum-overview', 'Lesson: The whole curriculum at a glance'),
+          ...opt([guide('y2-dt-guide', 'discussions', 'About the source lectures (Discussions with Teachers)', 2), ...dt(7, 14),
+            link('dt-closing', 'discussions', 'Discussions with Teachers: Closing Words', `${DT}19190907d19.html`)]),
         ] },
       ] },
       { id: 'y2-cur', title: 'Curriculum and stories, grades 4–5', units: [
+        { id: 'y2-cur-l', title: 'Overview', items: [lesson('l-grades-4-5', 'Lesson: The curriculum in grades 4 and 5')] },
         { id: 'y2-odin', title: 'Norse myths', items: [guide('y2-odin-guide', 'odin', 'Short guide'), read('y2-odin', '24737', 'The Children of Odin', 0, 34)] },
         { id: 'y2-heroes', title: 'Greek hero tales', items: [guide('y2-heroes-guide', 'heroes', 'Short guide'), read('y2-heroes', '677', 'The Heroes', 0, 15)] },
-        { id: 'y2-owl', title: 'Teachers’ articles, grades 4–5', items: [owl('y2-owl-link', 'Online Waldorf Library: choose articles for grades 4–5')] },
+        { id: 'y2-owl', title: 'Teachers’ articles, grades 4–5 (optional)', items: opt([owl('y2-owl-link', 'Online Waldorf Library: choose articles for grades 4–5')]) },
       ] },
       { id: 'y2-ec', title: 'Early childhood', units: [
-        { id: 'y2-ec-u', title: 'Teachers’ articles on early childhood', items: [owl('y2-ec-link', 'Online Waldorf Library: choose articles on play and the kindergarten')] },
+        { id: 'y2-ec-u', title: 'The kindergarten', items: [lesson('l-kindergarten', 'Lesson: The kindergarten morning'), ...opt([owl('y2-ec-link', 'Online Waldorf Library: choose articles on play and the kindergarten')])] },
       ] },
       { id: 'y2-inner', title: 'Inner development', units: [
         { id: 'y2-woi', title: 'The Way of Initiation, chapters V–VIII', items: [
-          read('y2-woi-1', '39986', 'Chapters V and VI', 7, 8),
-          read('y2-woi-2', '39986', 'Chapters VII and VIII', 9, 10),
+          lesson('l-woi-enlightenment', 'Lesson: Inner work, part two: seeing more in things'),
+          lesson('l-woi-conditions', 'Lesson: Inner work, part three: habits of soul and seven conditions'),
+          ...opt([read('y2-woi-1', '39986', 'Original text: chapters V and VI', 7, 8),
+            read('y2-woi-2', '39986', 'Original text: chapters VII and VIII', 9, 10)]),
         ] },
       ] },
       { id: 'y2-arts', title: 'The arts', units: [{ id: 'y2-arts-u', title: 'Practice log', items: artsItems(2) }] },
@@ -682,48 +719,60 @@ export const PLAN = [
     id: 'y3', title: 'Year 3', focus: 'Deepening, with the curriculum of grades 6–8',
     model: 'Modeled on the third year of the Southern California program’s published sequence.',
     courses: [
-      { id: 'y3-found', title: 'Foundation studies', units: [
-        { id: 'y3-occ', title: 'An Outline of Occult Science', items: [
-          guide('y3-occ-guide', 'occult', 'Short guide'),
-          read('y3-occ-1', '30718', 'Prefaces and chapters I–II', 0, 3),
-          read('y3-occ-2', '30718', 'Chapter III: Sleep and Death', 4, 5),
-          read('y3-occ-3', '30718', 'Chapter IV: The Evolution of the World and Man', 6, 11),
-          read('y3-occ-4', '30718', 'Chapter V: Knowledge of the Higher Worlds', 12, 15),
-          read('y3-occ-5', '30718', 'Chapters VI–VII and footnotes', 16, 18),
+      { id: 'y3-sm', title: 'The Study of Man', units: [
+        { id: 'y3-sm-u', title: 'The human form, work and the teacher’s task', items: [
+          lesson('l-head-chest-limbs', 'Lesson: Head, chest and limbs'),
+          lesson('l-purposeful-work', 'Lesson: Purposeful movement and real work'),
+          lesson('l-three-mottos', 'Lesson: Imagination, truth and responsibility'),
+          ...opt([guide('y3-sm-guide', 'studyOfMan', 'About the source lectures', 3), ...sm(10, 14)]),
         ] },
       ] },
-      { id: 'y3-sm', title: 'The Study of Man', units: [
-        { id: 'y3-sm-u', title: 'Lectures XI–XIV', items: [guide('y3-sm-guide', 'studyOfMan', 'Short guide', 3), ...sm(10, 14)] },
-      ] },
       { id: 'y3-art', title: 'The art of teaching', units: [
-        { id: 'y3-bal', title: 'Balance in Teaching', items: [
-          guide('y3-bal-guide', 'balance', 'Short guide'),
-          link('y3-bal-1', 'balance', 'Lecture 1: The Pedagogy of the West and of Central Europe: The Inner Attitude of the Teacher', 'https://rsarchive.org/Lectures/MediMan/19200915a02.html'),
-          link('y3-bal-2', 'balance', 'Lecture 2: The Three Fundamental Forces in Education', 'https://rsarchive.org/Lectures/MediMan/19200916p02.html'),
-          link('y3-bal-3', 'balance', 'Lecture 3: Spiritual Knowledge of Man as the Fount of Educational Art', 'https://rsarchive.org/Lectures/MediMan/19200921p01.html'),
-          link('y3-bal-4', 'balance', 'Lecture 4: Bringing into Balance the Physical and Spiritual Nature of the Developing Human Being', 'https://rsarchive.org/Lectures/MediMan/19200922p01.html'),
+        { id: 'y3-bal', title: 'The teacher', items: [
+          lesson('l-teacher-attitude', 'Lesson: The teacher’s inner attitude'),
+          lesson('l-three-forces', 'Lesson: Reverence, enthusiasm and protection'),
+          ...opt([guide('y3-bal-guide', 'balance', 'About the source lectures (Balance in Teaching)'),
+            link('y3-bal-1', 'balance', 'Lecture 1: The Pedagogy of the West and of Central Europe: The Inner Attitude of the Teacher', 'https://rsarchive.org/Lectures/MediMan/19200915a02.html'),
+            link('y3-bal-2', 'balance', 'Lecture 2: The Three Fundamental Forces in Education', 'https://rsarchive.org/Lectures/MediMan/19200916p02.html'),
+            link('y3-bal-3', 'balance', 'Lecture 3: Spiritual Knowledge of Man as the Fount of Educational Art', 'https://rsarchive.org/Lectures/MediMan/19200921p01.html'),
+            link('y3-bal-4', 'balance', 'Lecture 4: Bringing into Balance the Physical and Spiritual Nature of the Developing Human Being', 'https://rsarchive.org/Lectures/MediMan/19200922p01.html')]),
+        ] },
+        { id: 'y3-deep', title: 'Teaching as an art and its effect on health', items: [
+          lesson('l-gymnast-rhetorician', 'Lesson: Body, speech and knowledge: three kinds of teacher'),
+          lesson('l-teacher-health', 'Lesson: Teaching and health'),
+          ...opt([guide('y3-deep-guide', 'deeper', 'About the source lectures (Deeper Insights into Education)'),
+            link('y3-deep-1', 'deeper', 'Gymnast, Rhetorician, Professor: A Living Synthesis', 'https://rsarchive.org/Lectures/GA302a/English/AP1983/19231015v01.html'),
+            link('y3-deep-2', 'deeper', 'Forces Leading to Health and Illness in Education', 'https://rsarchive.org/Lectures/GA302a/English/AP1983/19231016a01.html'),
+            link('y3-deep-3', 'deeper', 'A Comprehensive Knowledge of Man as the Source of Imagination in the Teacher', 'https://rsarchive.org/Lectures/GA302a/English/AP1983/19231016p01.html')]),
         ] },
       ] },
       { id: 'y3-cur', title: 'Curriculum, grades 6–8', units: [
-        { id: 'y3-owl', title: 'Teachers’ articles, grades 6–8', items: [owl('y3-owl-link', 'Online Waldorf Library: choose articles for grades 6–8')] },
+        { id: 'y3-cur-l', title: 'Overview', items: [lesson('l-grades-6-8', 'Lesson: The curriculum in grades 6 to 8'), ...opt([owl('y3-owl-link', 'Online Waldorf Library: choose articles for grades 6–8')])] },
       ] },
       { id: 'y3-ec', title: 'Early childhood', units: [
-        { id: 'y3-ec-u', title: 'Teachers’ articles on early childhood', items: [owl('y3-ec-link', 'Online Waldorf Library: choose articles on readiness for school')] },
-      ] },
-      { id: 'y3-inner', title: 'Inner development', units: [
-        { id: 'y3-deep', title: 'Deeper Insights into Education', items: [
-          guide('y3-deep-guide', 'deeper', 'Short guide'),
-          link('y3-deep-1', 'deeper', 'Gymnast, Rhetorician, Professor: A Living Synthesis', 'https://rsarchive.org/Lectures/GA302a/English/AP1983/19231015v01.html'),
-          link('y3-deep-2', 'deeper', 'Forces Leading to Health and Illness in Education', 'https://rsarchive.org/Lectures/GA302a/English/AP1983/19231016a01.html'),
-          link('y3-deep-3', 'deeper', 'A Comprehensive Knowledge of Man as the Source of Imagination in the Teacher', 'https://rsarchive.org/Lectures/GA302a/English/AP1983/19231016p01.html'),
-        ] },
+        { id: 'y3-ec-u', title: 'Starting school', items: [lesson('l-readiness', 'Lesson: Readiness for first grade'), ...opt([owl('y3-ec-link', 'Online Waldorf Library: choose articles on readiness for school')])] },
       ] },
       { id: 'y3-arts', title: 'The arts', units: [{ id: 'y3-arts-u', title: 'Practice log', items: artsItems(3) }] },
       { id: 'y3-prac', title: 'Observation and practice', units: [
         { id: 'y3-prac-u', title: 'Practice teaching and project', items: [
+          lesson('l-block-planning', 'Lesson: Planning a main lesson block'),
+          lesson('l-reviewing', 'Lesson: Reviewing your own teaching'),
           practice('y3-prac-log', 'practicum', 'Continue the practicum log', 'practicum'),
           guide('y3-proj-guide', 'project', 'About the independent project'),
           practice('y3-project', 'project', 'Independent project', 'reflection'),
+        ] },
+      ] },
+      { id: 'y3-found', title: 'Foundation studies: An Outline of Occult Science', units: [
+        { id: 'y3-occ', title: 'An Outline of Occult Science', items: [
+          lesson('l-os-1', 'Lesson: Occult Science, part one: the human being, sleep and death'),
+          lesson('l-os-2', 'Lesson: Occult Science, part two: his story of the world'),
+          lesson('l-os-3', 'Lesson: Occult Science, part three: the path and the future'),
+          ...opt([guide('y3-occ-guide', 'occult', 'About the original book'),
+            read('y3-occ-1', '30718', 'Original text: prefaces and chapters I–II', 0, 3),
+            read('y3-occ-2', '30718', 'Original text: chapter III, Sleep and Death', 4, 5),
+            read('y3-occ-3', '30718', 'Original text: chapter IV, The Evolution of the World and Man', 6, 11),
+            read('y3-occ-4', '30718', 'Original text: chapter V, Knowledge of the Higher Worlds', 12, 15),
+            read('y3-occ-5', '30718', 'Original text: chapters VI–VII and footnotes', 16, 18)]),
         ] },
       ] },
     ],
@@ -734,12 +783,13 @@ export const GUIDES = G;
 
 // Gaps stated plainly, shown on the About page.
 export const GAPS = [
-  'In Year 1 the main teaching on method is in lessons written by Claude, an AI. They are a synthesis of how the approach is commonly described, not checked against any training program, and they do not retell the linked lectures.',
+  'The main teaching on method, in all three years, is in lessons written by Claude, an AI. They are a synthesis of how the approach is commonly described, not checked against any training program, and they do not retell the linked lectures.',
+  'Three long Steiner books (The Philosophy of Spiritual Activity, An Outline of Occult Science, and chapters V–VIII of The Way of Initiation) are covered by lessons in my own words, not by full plain-English versions. Their original text is in the library as optional reading.',
   'The reading order follows one published program sequence (Southern California, from a 2020 state filing). Other programs order things differently.',
-  'I could not open the Online Waldorf Library with my tools, so those items point to the library’s front page and ask you to choose.',
+  'I could not open the Online Waldorf Library with my tools, so those optional items point to the library’s front page.',
   'I could not open the contents page of The Kingdom of Childhood, so it has one link to the whole book.',
   'The grade placements of story material (fairy tales, fables, Norse and Greek myths) are marked “unsourced” where I could not tie them to a page in the lectures.',
-  'The arts, observation and practice teaching are logs only. They are what a training gives in person and an app cannot.',
+  'The arts lessons describe what is done; they cannot teach the skill. The arts, observation and practice teaching are what a training gives in person and an app cannot.',
   'This is not a Waldorf teacher training, is not accredited, and gives no certificate. It has no connection with AWSNA or WECAN.',
 ];
 
