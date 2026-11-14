@@ -166,6 +166,8 @@ export const BOOKS = {
   },
 };
 for (const [id, b] of Object.entries(BOOKS)) { b.id = id; b.url = PG(b.pg); }
+// Books that have a plain-English rendering in texts/<id>.json (field 'p').
+export const PLAIN = ['55586'];
 // Display order (object keys that look like numbers do not keep their written order).
 export const ORDER = {
   tier1: ['55586', '55761', '39986', '30718', '5314', '21', '24737', '677'],

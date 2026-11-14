@@ -1,7 +1,7 @@
 // Wildwood — a private, single-user study reader.
 // Course content lives in content.js and texts/. Progress, notes and logs live in Supabase,
 // in tables that only the owner's account can read or write.
-import { APP, SOURCES, BOOKS, LINKSETS, GUIDES, PLAN, GAPS, SHELF, ORDER, allItems, getItem, countable } from './content.js';
+import { APP, SOURCES, BOOKS, LINKSETS, GUIDES, PLAN, GAPS, SHELF, ORDER, PLAIN, allItems, getItem, countable } from './content.js';
 
 const CFG = {
   url: 'https://tmzlclbpscxrgzpnryma.supabase.co',
@@ -20,7 +20,7 @@ const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v ? JS
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage full or unavailable */ } };
 
 // ---------- Appearance (kept on the device, mirrored to the account) ----------
-const ui = Object.assign({ size: 19, night: false }, lsGet('wildwood:ui', {}));
+const ui = Object.assign({ size: 19, night: false, plain: true }, lsGet('wildwood:ui', {}));
 const sizeLabel = () => `Text size ${Math.round((ui.size / 19) * 100)}%${ui.size <= 14 ? ' (smallest)' : ui.size >= 30 ? ' (largest)' : ''}`;
 function applyUi() {
   document.documentElement.classList.toggle('night', !!ui.night);
@@ -236,6 +236,7 @@ function viewItem(id) {
     const b = BOOKS[it.book]; const pos = store.state.pos && store.state.pos[it.book];
     const from = it.from ?? 0; const inRange = pos && pos.ch >= from && (it.to == null || pos.ch <= it.to);
     body += `${it.title !== b.title ? `<p>From <em>${esc(b.title)}</em></p>` : ''}${bookFacts(b)}
+      ${PLAIN.includes(it.book) ? '<p><span class="tier tg">Plain-English version by Claude</span> <span class="small muted">The reader opens in plain English, with a switch to the original.</span></p>' : ''}
       <a class="btn primary block" id="open-reader" href="#/read/${it.book}/${inRange ? pos.ch : from}?i=${it.id}">${inRange ? 'Continue reading' : 'Open in the reader'}</a>`;
   } else if (it.type === 'link') {
     const s = it.set && LINKSETS[it.set];
@@ -260,7 +261,7 @@ function viewItem(id) {
 function viewLibrary() {
   const t1 = ORDER.tier1.map((id) => BOOKS[id]); const sh = ORDER.shelf.map((id) => BOOKS[id]);
   const row = (b) => { const it = SHELF.find((s) => s.book === b.id); const p = store.state.pos && store.state.pos[b.id];
-    return `<div class="lib"><h3>${esc(b.title)}</h3><div class="muted small">${esc(b.author)}</div><p class="small">${esc(b.verify)}</p>
+    return `<div class="lib"><h3>${esc(b.title)}</h3><div class="muted small">${esc(b.author)}${PLAIN.includes(b.id) ? ' · plain-English version available' : ''}</div><p class="small">${esc(b.verify)}</p>
       <div class="rowbtns"><a class="btn quiet" href="#/read/${b.id}/${p ? p.ch : 0}${it ? '?i=' + it.id : ''}">${p ? 'Continue' : 'Read'}</a>${it ? `<a class="btn quiet" href="#/item/${it.id}">Notes and status</a>` : ''}</div></div>`; };
   return shell('Library', `
     <h2>Tier 1 · full text, public domain</h2><p class="muted small">Each text was checked before it was included. The check is written under each title.</p>${t1.map(row).join('')}
@@ -321,6 +322,7 @@ function viewAbout(email) {
     <h2>How content is labeled</h2>
     <p><span class="tier">Tier 1</span> Full text inside the app. Only texts checked as public domain in the USA; the check is written beside each one.</p>
     <p><span class="tier t2">Tier 2</span> Link only. Nothing is copied or paraphrased at length.</p>
+    <p><span class="tier tg">Plain-English version by Claude</span> A paragraph-by-paragraph rewording of a public-domain text into everyday English, by an AI. The original is always one tap away in the reader.</p>
     <p><span class="tier tg">Written by Claude</span> Short guides by an AI. They say what a text is, where real programs place it, and what to look for, and they name a source for each point. They are not teaching.</p>
     <h2>Known gaps</h2><ul>${GAPS.map((g) => `<li>${esc(g)}</li>`).join('')}</ul>
     <h2>Sources for the plan</h2><ul>${Object.values(SOURCES).map((s) => `<li><a href="${s.url}" target="_blank" rel="noopener">${esc(s.label)}</a></li>`).join('')}</ul>
@@ -348,8 +350,8 @@ async function viewReader(bookId, ch, itemId) {
   let data; try { data = await loadBook(bookId); } catch (e) { return shell(b.title, `<div class="err">${esc(e.message)} Check your connection and try again.</div>`, 'library', '#/library'); }
   const n = data.chapters.length; ch = Math.min(Math.max(0, ch | 0), n - 1);
   const it = itemId && getItem(itemId); const from = it && it.from != null ? it.from : 0; const to = it && it.to != null ? Math.min(it.to, n - 1) : n - 1;
-  const q = itemId ? '?i=' + itemId : ''; const c = data.chapters[ch];
-  reader = { book: bookId, ch, item: itemId || null, n };
+  const q = itemId ? '?i=' + itemId : ''; const c = data.chapters[ch]; const usePlain = !!c.p && ui.plain !== false;
+  reader = { book: bookId, ch, item: itemId || null, n, hasPlain: !!c.p };
   if (it && store.status(it.id) === 'not_started') store.setProgress(it.id, 'in_progress');
   const marked = store.bookmarks.some((m) => m.book_id === bookId && m.chapter === ch);
   const atEnd = it && ch >= to;
@@ -360,7 +362,10 @@ async function viewReader(bookId, ch, itemId) {
       <button class="iconbtn ${marked ? 'on' : ''}" data-act="bookmark" aria-label="Bookmark this place" aria-pressed="${marked}">⚑</button>
       <button class="iconbtn" data-act="look" aria-label="Text size and night mode">Aa</button>
     </div></header>
-    <article class="reader" id="reader" lang="en"><h2>${esc(c.t)}</h2>${c.h}
+    <article class="reader" id="reader" lang="en">
+      ${c.p ? `<div class="version"><div class="seg" role="group" aria-label="Version"><button data-act="version" data-v="1" aria-pressed="${usePlain}">Plain English</button><button data-act="version" data-v="0" aria-pressed="${!usePlain}">Original</button></div>
+        <p class="pnote">${usePlain ? '<strong>Plain-English version by Claude.</strong> It follows the original paragraph by paragraph. Headings and notes in [square brackets] are added. These are not Steiner’s words; switch to Original to check any passage.' : `<strong>Original text.</strong> ${esc(b.facts || '')}`}</p></div>` : ''}
+      <h2>${esc(c.t)}</h2>${usePlain ? c.p : c.h}
       <div class="endcard">
         ${atEnd ? `<p>End of this reading.</p>${store.status(it.id) === 'done' ? '<p class="muted">Marked done.</p>' : `<button class="btn primary block" data-act="finish" data-id="${it.id}">Mark this reading done</button>`}<p><a href="#/item/${it.id}">Back to the item and my notes</a></p>`
           : ch < n - 1 ? `<a class="btn primary block" href="#/read/${bookId}/${ch + 1}${q}">Next: ${esc(data.chapters[ch + 1].t)}</a>` : '<p>End of the book.</p>'}
@@ -384,7 +389,8 @@ window.addEventListener('scroll', () => {
 function openLook() {
   const el = document.createElement('div'); el.className = 'sheet'; el.id = 'sheet'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Text size and night mode');
   el.innerHTML = `<div class="sh"><h2>Reading settings</h2><button class="iconbtn" data-act="close-sheet" aria-label="Close">✕</button></div>
-    <div class="body"><p class="eyebrow" data-size-label>${sizeLabel()}</p>
+    <div class="body">${reader && reader.hasPlain ? `<p class="eyebrow">Version</p><div class="seg" role="group"><button data-act="version" data-v="1" aria-pressed="${ui.plain !== false}">Plain English</button><button data-act="version" data-v="0" aria-pressed="${ui.plain === false}">Original</button></div>` : ''}
+      <p class="eyebrow" data-size-label>${sizeLabel()}</p>
       <div class="rowbtns"><button class="btn" data-act="size" data-d="-1" aria-label="Smaller text">A−</button><button class="btn" data-act="size" data-d="1" aria-label="Larger text">A+</button></div>
       <p class="reader" style="padding:0;margin:1rem 0" id="look-sample">The quick brown fox reads under the trees.</p>
       <p class="eyebrow">Light</p>
@@ -466,6 +472,7 @@ document.addEventListener('click', async (ev) => {
   else if (act === 'size') { ui.size = Math.min(30, Math.max(14, ui.size + (+t.dataset.d) * 1.5)); applyUi(); store.setState({ ui: { ...ui } }); document.querySelectorAll('[data-size-label]').forEach((el) => { el.textContent = sizeLabel(); }); }
   else if (act === 'night') { ui.night = t.dataset.v != null ? t.dataset.v === '1' : !ui.night; applyUi(); store.setState({ ui: { ...ui } }); if ($('#sheet')) openLook(); else if (!reader) render(); }
   else if (act === 'look') openLook();
+  else if (act === 'version') { const f = scrollFrac(); ui.plain = t.dataset.v === '1'; applyUi(); store.setState({ ui: { ...ui } }); await render(); requestAnimationFrame(() => restoreScroll(f)); }
   else if (act === 'toc') openSheet('toc');
   else if (act === 'sheet-tab') openSheet(t.dataset.tab);
   else if (act === 'close-sheet') $('#sheet')?.remove();
